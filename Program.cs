@@ -47,22 +47,28 @@ namespace Habit_Tracker
         }
         static void MainMenu()
         {
-            Console.Clear();
-            Console.WriteLine("Please select an option");
-            Console.WriteLine("Enter 1 to create an entry.");
-            Console.WriteLine("Enter 2 to display all entries.");
-            Console.WriteLine("Enter 3 to delete an entry");
-            Console.WriteLine("Enter 4 to see all entries");
 
-            string optionSelected = Console.ReadLine();
+
+            Console.Clear();
             bool closeApp = false;
             while (closeApp == false)
             {
+                
+                Console.WriteLine("Please select an option");
+                Console.WriteLine("Enter 1 to create an entry.");
+                Console.WriteLine("Enter 2 to display all entries.");
+                Console.WriteLine("Enter 3 to delete an entry");
+                Console.WriteLine("Enter 4 to see all entries");
+
+                string optionSelected = Console.ReadLine();
                 switch (optionSelected)
                 {
-                    case "0": closeApp = true; break;
-                    case "1": CreateEntry(); break;
-                    case "2": DisplayAll(); break;
+                    case "0": closeApp = true; 
+                        break;
+                    case "1": CreateEntry(); 
+                        break;
+                    case "2": DisplayAll();
+                        break;
                     default:
                         break;
                 }
