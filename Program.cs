@@ -53,21 +53,30 @@ namespace Habit_Tracker
             bool closeApp = false;
             while (closeApp == false)
             {
-                
+
                 Console.WriteLine("Please select an option");
                 Console.WriteLine("Enter 1 to create an entry.");
                 Console.WriteLine("Enter 2 to display all entries.");
                 Console.WriteLine("Enter 3 to delete an entry");
-                Console.WriteLine("Enter 4 to see all entries");
+                Console.WriteLine("Enter 4 to update an entry");
 
                 string optionSelected = Console.ReadLine();
                 switch (optionSelected)
                 {
-                    case "0": closeApp = true; 
+                    case "0":
+                        closeApp = true;
                         break;
-                    case "1": CreateEntry(); 
+                    case "1":
+                        CreateEntry();
                         break;
-                    case "2": DisplayAll();
+                    case "2":
+                        DisplayAll();
+                        break;
+                    case "3":
+                        Delete();
+                        break;
+                    case "4":
+                        Update();
                         break;
                     default:
                         break;
@@ -91,7 +100,7 @@ namespace Habit_Tracker
                     tableCmd.ExecuteNonQuery();
                     connection.Close();
                 }
-                MainMenu();
+                //MainMenu();
             }
         }
         static string GetDateInput()
@@ -110,59 +119,133 @@ namespace Habit_Tracker
             int convertedQuantityInput = Convert.ToInt32(quantityInput);
             return convertedQuantityInput;
         }
+        static int GetRecordId(string message)
+        {
+            Console.WriteLine(message);
+            string idInput = Console.ReadLine();
+            if (idInput == "0") MainMenu();
+            int convertedIdInput = Convert.ToInt32(idInput);
+            return convertedIdInput;
+        }
         public static void DisplayAll()
         {
 
             using (var connection = new SqliteConnection(connectionString))
             {
 
-                    var tableCmd = connection.CreateCommand();
-                    connection.Open();
-                    tableCmd.CommandText =
-                        $"SELECT * FROM yourHabit";
+                var tableCmd = connection.CreateCommand();
+                connection.Open();
+                tableCmd.CommandText =
+                    $"SELECT * FROM yourHabit";
 
-                    List<DrinkingWater> tableData = new();
-                    SqliteDataReader reader = tableCmd.ExecuteReader();
+                List<DrinkingWater> tableData = new();
+                SqliteDataReader reader = tableCmd.ExecuteReader();
 
-                    if (reader.HasRows)
+                if (reader.HasRows)
+                {
+                    while (reader.Read())
                     {
-                        while (reader.Read())
-                        {
-                            tableData.Add(
-                                new DrinkingWater
-                                {
-                                    Id = reader.GetInt32(0),
-                                    Date = DateTime.ParseExact(reader.GetString(1), "dd MMMM yyyy", CultureInfo.InvariantCulture),
-                                    
-                                    Quantity = reader.GetInt32(2)
-                                }); 
-                        }
-                        
+                        tableData.Add(
+                            new DrinkingWater
+                            {
+                                Id = reader.GetInt32(0),
+                                Date = DateTime.ParseExact(reader.GetString(1), "dd MMMM yyyy", CultureInfo.InvariantCulture),
+
+                                Quantity = reader.GetInt32(2)
+                            });
+                    }
+
+                }
+                else
+                {
+                    Console.WriteLine("No entries found");
+                }
+
+                connection.Close();
+
+
+                foreach (var item in tableData)
+                {
+                    Console.WriteLine($"Id: {item.Id} Date:{item.Date.ToString("dd MMMM yyyy")} Quantity: {item.Quantity}");
+
+                }
+
+
+
+            }
+        }
+
+        private static void Delete()
+        {
+            Console.Clear();
+            DisplayAll();
+            var recordID = GetRecordId("Please enter the record Id you want to delete or enter 0 to return to main menu.");
+            using (var connection = new SqliteConnection(connectionString))
+            {
+
+                using (var tableCmd = connection.CreateCommand())
+                {
+                    connection.Open();
+
+                    tableCmd.CommandText =
+                        $"DELETE from yourHabit WHERE Id = '{recordID}'";
+
+                    int rowCount = tableCmd.ExecuteNonQuery();
+                    if (rowCount == 0)
+                    {
+                        Console.WriteLine($"Record with id {recordID} doesn't exist");
+                        Delete();
                     }
                     else
                     {
-                        Console.WriteLine("No entries found");
+                        Console.WriteLine("Record has been deleted");
                     }
 
-                    connection.Close();
-                    
+                }
 
-                    foreach (var item in tableData)
-                    {
-                       Console.WriteLine($"Id: {item.Id} Date:{item.Date} Quantity: {item.Quantity}");
-                        
-                    }
-
-                
-                
             }
         }
-    }
+        private static void Update()
+        {
+            
+            DisplayAll();
+            var recordID = GetRecordId("Please enter the record Id you want to update or enter 0 to return to main menu.");
+            using (var connection = new SqliteConnection(connectionString))
+            {
 
-    public class DrinkingWater
-    {
-        public int Id { get; set; }
-        public DateTime Date { get; set; }
-        public int Quantity { get; set; }
+                var tableCmd = connection.CreateCommand();
+
+                connection.Open();
+
+                tableCmd.CommandText =
+                    $"SELECT * from yourHabit WHERE Id = {recordID}";
+
+                int checkQuery = Convert.ToInt32(tableCmd.ExecuteScalar());
+                if (checkQuery == 0)
+                {
+                    Console.WriteLine("Record Id doesn't exist");
+                    connection.Close();
+                    Update();
+                }
+
+                string date = GetDateInput();
+                int quantity = GetQuantityInput();
+                tableCmd.CommandText =
+                    $"UPDATE yourHabit SET Date = '{date}', Quantity = {quantity} WHERE ID = {recordID}";
+
+                tableCmd.ExecuteNonQuery();
+                connection.Close();
+
+
+
+            }
+        }
+
+        public class DrinkingWater
+        {
+            public int Id { get; set; }
+            public DateTime Date { get; set; }
+            public int Quantity { get; set; }
+        }
     }
 }
