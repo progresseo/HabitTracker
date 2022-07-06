@@ -29,7 +29,7 @@ namespace Habit_Tracker
                         tableCmd.CommandText =
                             @"CREATE TABLE IF NOT EXISTS yourHabit (
                     Id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    Date TEXT,
+                    Date TEXT unique,
                     Quantity INTEGER
                     )";
 
@@ -65,6 +65,8 @@ namespace Habit_Tracker
                 {
                     case "0":
                         closeApp = true;
+                        Environment.Exit(0);
+
                         break;
                     case "1":
                         CreateEntry();
@@ -79,6 +81,7 @@ namespace Habit_Tracker
                         Update();
                         break;
                     default:
+                        Console.WriteLine("Please ensure to enter a number between 1 to 4.");
                         break;
                 }
             }
@@ -96,8 +99,17 @@ namespace Habit_Tracker
 
                     tableCmd.CommandText =
                         $"INSERT INTO yourHabit (Date, Quantity) VALUES('{date}',{quantity})";
+                    try
+                    {
 
-                    tableCmd.ExecuteNonQuery();
+                        tableCmd.ExecuteNonQuery();
+                    }catch(Exception ex)
+                    {
+                        if (ex.Message.Contains("UNIQUE")) {
+                            Console.WriteLine("A record for this date already exists.");
+                        }
+                        
+                    }
                     connection.Close();
                 }
                 //MainMenu();
@@ -108,6 +120,14 @@ namespace Habit_Tracker
             Console.WriteLine("Please enter the date in format DD MMMM YYYY. Enter 0 for main menu");
             string dateInput = Console.ReadLine();
             if (dateInput == "0") MainMenu();
+            while(!DateTime.TryParseExact(dateInput, "dd MMMM yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None ,out _))  {
+                Console.WriteLine("Please enter the date in format DD MMMM YYYY e.g 05 May 2006");
+                dateInput = Console.ReadLine();
+
+            }
+
+
+          
             return dateInput;
         }
 
@@ -116,6 +136,13 @@ namespace Habit_Tracker
             Console.WriteLine("Please enter the number of glasses of water you drank e.g 4 (no decimals). Enter 0 for main menu.");
             string quantityInput = Console.ReadLine();
             if (quantityInput == "0") MainMenu();
+            
+            while (!Int32.TryParse(quantityInput,  out _) || Convert.ToInt32(quantityInput)<0)
+            {
+                Console.WriteLine("Please enter number of glasses of water drunk. Enter an integer e.g 4");
+                quantityInput = Console.ReadLine();
+
+            }
             int convertedQuantityInput = Convert.ToInt32(quantityInput);
             return convertedQuantityInput;
         }
@@ -124,6 +151,12 @@ namespace Habit_Tracker
             Console.WriteLine(message);
             string idInput = Console.ReadLine();
             if (idInput == "0") MainMenu();
+            while (!Int32.TryParse(idInput, out _) || Convert.ToInt32(idInput) < 0)
+            {
+                Console.WriteLine("Please enter the redocd ID. Enter an integer e.g 4");
+                idInput = Console.ReadLine();
+
+            }
             int convertedIdInput = Convert.ToInt32(idInput);
             return convertedIdInput;
         }
